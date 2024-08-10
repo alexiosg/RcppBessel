@@ -1,6 +1,6 @@
 # RcppBessel
 
-The `RcppBessel` package exports headers for the Bessel functions found in the 
+The `RcppBessel` package exports an Rcpp interface for the Bessel functions found in the 
 `Bessel` package of Maechler by wrapping the functions in the C code (translated
 and cleaned up from Amos' original FORTRAN code by Maechler) into C++. Not all 
 functionality is exposed, in order to keep things simple, but may be expanded 

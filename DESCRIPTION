@@ -1,12 +1,12 @@
 Package: RcppBessel
 Type: Package
-Title: Bessel C++ headers
+Title: Bessel Functions Rcpp Interface
 Version: 1.0.0
 Authors@R: c(person(given = "Alexios", family = "Galanos", role = c("aut", "cre"), email = "alexios@4dscape.com"),
            person(given = "Martin", family = "Maechler", role = c("aut"), comment = "Author of the Bessel R package"), 
            person(given = "Donald E.", family = "Amos", role = c("aut"), comment = "Original author of the zbsubs Fortran code, Sandia National Laboratories"))
 Maintainer: Alexios Galanos <alexios@4dscape.com>
-Description: Exports C++ headers for Bessel functions based on the `Bessel` package.
+Description: Exports an Rcpp interface for the Bessel functions based on the `Bessel` package which can be called from other packages.
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

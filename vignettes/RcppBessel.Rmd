@@ -1,8 +1,8 @@
 ---
-title: "RcppBessel: Bessel Headers and use with Rcpp"
+title: "RcppBessel: Rcpp Bessel Interface for use with Rcpp"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{RcppBessel: Bessel Headers and use with Rcpp}
+  %\VignetteIndexEntry{RcppBessel: Rcpp Bessel Interface for use with Rcpp}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-The `RcppBessel` package exports headers for the Bessel functions found in the 
+The `RcppBessel` package exports an Rcpp interface for the Bessel functions found in the 
 `Bessel` package of Maechler by wrapping the functions in the C code (translated
 and cleaned up from Amos' original FORTRAN code by Maechler) into C++. Not all 
 functionality is exposed, in order to keep things simple, but may be expanded 

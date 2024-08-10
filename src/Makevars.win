@@ -10,12 +10,11 @@ OBJECTS_C = $(SOURCES_C:.c=.o)
 OBJECTS = $(OBJECTS_CPP) $(OBJECTS_C)
 
 # Custom shared library name to avoid conflict
-MY_SHLIB = libRcppBessel.so
+MY_SHLIB = RcppBessel.dll
 
 # Build the custom shared library
 $(MY_SHLIB): $(OBJECTS)
 	$(SHLIB_LINK) $(OBJECTS) $(PKG_LIBS) -o $@
-	ln -sf $@ $(SHLIB)
 
 clean:
 	rm -f $(OBJECTS) $(MY_SHLIB) $(SHLIB)

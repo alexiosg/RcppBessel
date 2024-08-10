@@ -1,3 +1,7 @@
+  <!-- badges: start -->
+  [![R-CMD-check](https://github.com/alexiosg/RcppBessel/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/alexiosg/RcppBessel/actions/workflows/R-CMD-check.yaml)
+  <!-- badges: end -->
+  
 # RcppBessel
 
 The `RcppBessel` package exports an Rcpp interface for the Bessel functions found in the 

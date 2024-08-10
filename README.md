@@ -13,8 +13,8 @@ Bessel function of the second kind to be used in C++ code which the author neede
 in another package. The [Boost](https://www.boost.org/doc/libs/1_85_0/libs/math/doc/html/math_toolkit/bessel/mbessel.html) 
 implementation does not allow for complex arguments
 whilst the special math functions in [std library](https://en.cppreference.com/w/cpp/numeric/special_functions/cyl_bessel_k)
-is not available for Mac OS (via the shipped libc++).  Additionally, neither of those 
-implementation has the option of exponential scaling.
+are not available for Mac OS (via the shipped libc++).  Additionally, neither of those 
+implementations has the option of exponential scaling.
 
 # Install
 

@@ -1,0 +1,21 @@
+CXX_STD = CXX17
+PKG_CPPFLAGS = -I../inst/include -I$(R_HOME)/library/Rcpp/include
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+
+# Define source and object files
+SOURCES_CPP = RcppExports.cpp RcppBessel.cpp bessel.cpp conversion.cpp
+SOURCES_C = zbsubs.c
+OBJECTS_CPP = $(SOURCES_CPP:.cpp=.o)
+OBJECTS_C = $(SOURCES_C:.c=.o)
+OBJECTS = $(OBJECTS_CPP) $(OBJECTS_C)
+
+# Custom shared library name to avoid conflict
+MY_SHLIB = libRcppBessel.so
+
+# Build the custom shared library
+$(MY_SHLIB): $(OBJECTS)
+	$(SHLIB_LINK) $(OBJECTS) $(PKG_LIBS) -o $@
+	ln -sf $@ $(SHLIB)
+
+clean:
+	rm -f $(OBJECTS) $(MY_SHLIB) $(SHLIB)

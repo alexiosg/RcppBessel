@@ -1,0 +1,485 @@
+---
+title: "RcppBessel: Bessel Headers and use with Rcpp"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RcppBessel: Bessel Headers and use with Rcpp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+The `RcppBessel` package exports headers for the Bessel functions found in the 
+`Bessel` package of Maechler by wrapping the functions in the C code (translated
+and cleaned up from Amos' original FORTRAN code by Maechler) into C++. Not all 
+functionality is exposed, in order to keep things simple, but may be expanded 
+in the future to export more of the functions such as those for the asymptotic 
+expansion of BesselK and BesselI for large nu and x. The package also exports 
+the functions for use in R, as it was found to offer a speed up of up to 10x.
+
+The initial motivation for writing this package was so as to allow the modified
+Bessel function of the second kind to be used in C++ code which the author needed
+in another package. The [Boost](https://www.boost.org/doc/libs/1_85_0/libs/math/doc/html/math_toolkit/bessel/mbessel.html) 
+implementation does not allow for complex arguments
+whilst the special math functions in [std library](https://en.cppreference.com/w/cpp/numeric/special_functions/cyl_bessel_k)
+is not available for Mac OS (via the shipped libc++).  Additionally, neither of those 
+implementation has the option of exponential scaling.
+
+# Implementation
+
+The table below shows the functions currently available.
+
+
+| **RcppBessel Function** | **Description** |
+|-------------------------|-----------------|
+| `bessel_k`               | Computes the modified Bessel function of the second kind. |
+| `bessel_y`               | Computes the Bessel function of the second kind (Neumann function). |
+| `bessel_h`               | Computes the Hankel function (Bessel function of the third kind). |
+| `bessel_i`               | Computes the modified Bessel function of the first kind.  |
+| `bessel_j`               | Computes the Bessel function of the first kind. |
+| `airy_a`                 | Computes the Airy function of the first kind. |
+| `airy_b`                 | Computes the Airy function of the second kind. |
+
+To distinguish between the CamelCase naming in the `Bessel` package and the lowercamelCase naming in base R,
+the package has adopted the snake_case syntax similar to the `std` lib. Other than that, the arguments are
+the same as in the Bessel package with the exception of `nSeq`, which computes the result for a whole sequence of nu values, 
+which we have opted to skip in the implementation.
+
+For real values less than zero, `bessel_k` and `bessel_y` return complex values. 
+In this case, if the vector `z` has negative values, the whole output returned is complex valued. The
+table below shows the general input/output types expected.
+
+
+| Function Name | Input for `z`                        | Output Type  |
+|---------------|--------------------------------------|--------------|
+| `bessel_k`    | Real (all >= 0)                      | Real         |
+|               | Real (any < 0)                       | Complex      |
+|               | Complex                              | Complex      |
+| `bessel_y`    | Real (all >= 0)                      | Real         |
+|               | Real (some < 0)                      | Complex      |
+|               | Complex                              | Complex      |
+| `bessel_h`    | Real (any value)                     | Complex      |
+|               | Complex                              | Complex      |
+| `bessel_i`    | Real (any value)                     | Real         |
+|               | Complex                              | Complex      |
+| `bessel_j`    | Real (any value)                     | Real         |
+|               | Complex                              | Complex      |
+| `airy_a`      | Real (any value)                     | Real         |
+|               | Complex                              | Complex      |
+| `airy_b`      | Real (any value)                     | Real         |
+|               | Complex                              | Complex      |
+
+For values of zero, the output is similar to what the `Bessel` package returns 
+with the exception of `bessel_k` which returns `Inf` similar to base R, whereas
+`Bessel::BesselK` returns `0`.
+
+
+The next sections provide a individual summary of each of the functions and a sample
+`C++` code which can be pasted and sourced to test the results against the `Bessel` 
+function implementation and also show how the package can be used inside other Rcpp 
+functions.
+
+## BesselK (`bessel_k`)
+
+### Description
+
+Computes the modified Bessel function of the second kind.
+
+### Inputs
+
+- `z`: A numeric or complex vector of points at which to evaluate the Bessel function.
+- `nu`: A numeric value representing the order of the Bessel function.
+- `expon_scaled`: A logical value indicating whether to use the exponentially scaled form.
+- `verbose`: An integer specifying the verbosity level for error messages.
+
+### Output
+
+- A either a numeric or complex vector (depending on the input) with the values 
+of the `bessel_k` function.
+
+
+### Example
+
+```cpp
+// test_bessel_k.cpp
+#include <Rcpp.h>
+#include <RcppBessel.h>
+// [[Rcpp::depends(Rcpp, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_bessel_k(SEXP x, double nu, bool expon_scaled, int verbose) {
+  SEXP z = RcppBessel::bessel_k(x, nu, expon_scaled, verbose);
+  return z;
+}
+
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+library(Bessel)
+# Source the C++ code
+Rcpp::sourceCpp("test_bessel_k.cpp")
+
+# Generate a sequence
+x <- seq(1, 10, by = 1)
+
+# Compare results with Bessel package
+tmp <- Bessel::BesselK(x, 2, FALSE, 1, 0)
+all.equal(tmp, test_bessel_k(x, 2, FALSE, 0))
+*/
+```
+
+
+## BesselI (`bessel_i`)
+
+### Description
+
+Computes the modified Bessel function of the first kind.
+
+### Inputs
+
+- `z`: A numeric or complex vector of points at which to evaluate the Bessel function.
+- `nu`: A numeric value representing the order of the Bessel function.
+- `expon_scaled`: A logical value indicating whether to use the exponentially scaled form.
+- `verbose`: An integer specifying the verbosity level for error messages.
+
+### Output
+
+- A numeric or complex vector (depending on the input) with the values of the `bessel_i` function.
+
+### Example
+
+```cpp
+// test_bessel_i.cpp
+#include <Rcpp.h>
+#include <RcppBessel.h>
+// [[Rcpp::depends(Rcpp, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_bessel_i(SEXP x, double nu, bool expon_scaled, int verbose) {
+  SEXP z = RcppBessel::bessel_i(x, nu, expon_scaled, verbose);
+  return z;
+}
+
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+library(Bessel)
+# Source the C++ code
+Rcpp::sourceCpp("test_bessel_i.cpp")
+
+# Generate a sequence
+x <- seq(-10, 10, by = 1)
+
+# Compare results with Bessel package
+tmp <- Bessel::BesselI(x, 2, FALSE, 1, 0)
+all.equal(tmp, test_bessel_i(x, 2, FALSE, 0))
+*/
+```
+
+
+## BesselJ (`bessel_j`)
+
+### Description
+
+Computes the Bessel function of the first kind.
+
+### Inputs
+
+- `z`: A numeric or complex vector of points at which to evaluate the Bessel function.
+- `nu`: A numeric value representing the order of the Bessel function.
+- `expon_scaled`: A logical value indicating whether to use the exponentially scaled form.
+- `verbose`: An integer specifying the verbosity level for error messages.
+
+### Output
+
+- A numeric or complex vector (depending on the input) with the values of the `bessel_j` function.
+
+### Example
+
+```cpp
+// test_bessel_j.cpp
+#include <Rcpp.h>
+#include <RcppBessel.h>
+// [[Rcpp::depends(Rcpp, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_bessel_j(SEXP x, double nu, bool expon_scaled, int verbose) {
+  SEXP z = RcppBessel::bessel_j(x, nu, expon_scaled, verbose);
+  return z;
+}
+
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+library(Bessel)
+# Source the C++ code
+Rcpp::sourceCpp("test_bessel_j.cpp")
+
+# Generate a sequence
+x <- seq(-10, 10, by = 1)
+
+# Compare results with Bessel package
+tmp <- Bessel::BesselJ(x, 2, FALSE, 1, 0)
+all.equal(tmp, test_bessel_j(x, 2, FALSE, 0))
+*/
+```
+
+## BesselY (`bessel_y`)
+
+### Description
+
+Computes the Bessel function of the second kind (Neumann function).
+
+### Inputs
+
+- `z`: A (strictly positive) numeric or complex vector of points at which to evaluate the Bessel function.
+- `nu`: A numeric value representing the order of the Bessel function.
+- `expon_scaled`: A logical value indicating whether to use the exponentially scaled form.
+- `verbose`: An integer specifying the verbosity level for error messages.
+
+### Output
+
+- A numeric or complex vector (depending on the input) with the values of the `bessel_y` function.
+
+### Example
+
+```cpp
+// test_bessel_y.cpp
+#include <Rcpp.h>
+#include <RcppBessel.h>
+// [[Rcpp::depends(Rcpp, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_bessel_y(SEXP x, double nu, bool expon_scaled, int verbose) {
+  SEXP z = RcppBessel::bessel_y(x, nu, expon_scaled, verbose);
+  return z;
+}
+
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+library(Bessel)
+# Source the C++ code
+Rcpp::sourceCpp("test_bessel_y.cpp")
+
+# Generate a sequence
+x <- seq(-10, 10, by = 0.35)
+# skipping zero since bessel_y returns -Inf+0i whereas BesselY return -Inf+NaNi
+# Compare results with Bessel package
+tmp <- Bessel::BesselY(x, 2, FALSE, 1, 0)
+all.equal(tmp, test_bessel_y(x, 2, FALSE, 0))
+*/
+```
+
+
+
+## BesselH (`bessel_h`)
+
+### Description
+
+Computes the Hankel function (Bessel function of the third kind) of the first or second kind.
+
+### Inputs
+
+- `m`: An integer specifying the type of Hankel function. Must be either `1` (for the first kind) or `2` (for the second kind).
+- `z`: A numeric or complex vector of points at which to evaluate the Hankel function.
+- `nu`: A numeric value representing the order of the Hankel function.
+- `expon_scaled`: A logical value indicating whether to use the exponentially scaled form.
+- `verbose`: An integer specifying the verbosity level for error messages.
+
+### Output
+
+- A complex vector with the values of the `bessel_h` function evaluated at the points in `z`.
+
+### Example
+
+```cpp
+// test_bessel_h.cpp
+#include <Rcpp.h>
+#include <RcppBessel.h>
+// [[Rcpp::depends(Rcpp, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_bessel_h(int m, SEXP x, double nu, bool expon_scaled, int verbose) {
+  SEXP z = RcppBessel::bessel_h(m, x, nu, expon_scaled, verbose);
+  return z;
+}
+
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+library(Bessel)
+
+# Source the C++ code
+Rcpp::sourceCpp("test_bessel_h.cpp")
+
+# Generate a sequence
+x <- seq(-10, 10, by = 0.35)
+# skipping again zero
+# Compare results with Bessel package
+tmp <- Bessel::BesselH(1, x, 2, FALSE, 1, 0)
+all.equal(tmp, test_bessel_h(1, x, 2, FALSE, 0))
+*/
+```
+
+
+
+## AiryA (`airy_a`)
+
+### Description
+
+Computes the Airy function *Ai* for real or complex inputs.
+
+### Inputs
+
+- `z`: A numeric or complex vector of points at which to evaluate the Airy function.
+- `deriv`: An integer indicating whether to compute the function itself (`0`) or its first derivative (`1`). Defaults to `0`.
+- `expon_scaled`: A logical value indicating whether to use the exponentially scaled form of the Airy function. Defaults to `FALSE`.
+- `verbose`: An integer specifying the verbosity level for error messages.
+
+### Output
+
+- A numeric or complex vector (depending on the input) with the values of the `airy_a` function evaluated at the points in `z`.
+
+### Example
+
+```cpp
+// test_airy_a.cpp
+#include <Rcpp.h>
+#include <RcppBessel.h>
+// [[Rcpp::depends(Rcpp, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_airy_a(SEXP x, int deriv = 0, bool expon_scaled = false, int verbose = 0) {
+  SEXP z = RcppBessel::airy_a(x, deriv, expon_scaled, verbose);
+  return z;
+}
+
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+
+# Source the C++ code
+Rcpp::sourceCpp("test_airy_a.cpp")
+
+# Generate a sequence
+x <- seq(-10, 10, by = 1)
+
+tmp <- Bessel::AiryA(x, 1)
+all.equal(tmp, test_airy_a(x, 1, FALSE, 0))
+*/
+```
+
+
+## AiryB (`airy_b`)
+
+### Description
+
+Computes the Airy function *Bi* for real or complex inputs.
+
+### Inputs
+
+- `z`: A numeric or complex vector of points at which to evaluate the Airy function.
+- `deriv`: An integer indicating whether to compute the function itself (`0`) or its first derivative (`1`). Defaults to `0`.
+- `expon_scaled`: A logical value indicating whether to use the exponentially scaled form of the Airy function. Defaults to `FALSE`.
+- `verbose`: An integer specifying the verbosity level for error messages.
+
+### Output
+
+- A numeric or complex vector (depending on the input) with the values of the `airy_b` function evaluated at the points in `z`.
+
+### Example
+
+```cpp
+// test_airy_b.cpp
+#include <Rcpp.h>
+#include <RcppBessel.h>
+// [[Rcpp::depends(Rcpp, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_airy_b(SEXP x, int deriv = 0, bool expon_scaled = false, int verbose = 0) {
+  SEXP z = RcppBessel::airy_b(x, deriv, expon_scaled, verbose);
+  return z;
+}
+
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+
+# Source the C++ code
+Rcpp::sourceCpp("test_airy_b.cpp")
+
+# Generate a sequence
+x <- seq(-10, 10, by = 1)
+
+tmp <- Bessel::AiryB(x, 1)
+all.equal(tmp, test_airy_b(x, 1, FALSE, 0))
+*/
+```
+
+## An Example with RcppArmadillo Conversion
+
+```cpp
+#include <RcppArmadillo.h>
+#include <RcppBessel.h>
+
+// [[Rcpp::depends(RcppArmadillo, RcppBessel)]]
+// [[Rcpp::export]]
+SEXP test_bessel_k(const arma::vec& x, double nu, bool expon_scaled = false, int verbose = 0) {
+  // Convert arma::vec to Rcpp::NumericVector
+  Rcpp::NumericVector rx = Rcpp::wrap(x);
+  // Call the BesselK function
+  SEXP z = RcppBessel::bessel_k(rx, nu, expon_scaled, verbose);
+  // Check if the result is complex
+  if (Rcpp::is<Rcpp::ComplexVector>(z)) {
+    Rcpp::ComplexVector cz(z);
+    arma::cx_vec result = Rcpp::as<arma::cx_vec>(cz);
+    return Rcpp::wrap(result);
+  } else {
+    Rcpp::NumericVector rz(z);
+    arma::vec result = Rcpp::as<arma::vec>(rz);
+    return Rcpp::wrap(result);
+  }
+}
+/*** R
+# Example usage in R
+library(Rcpp)
+library(RcppBessel)
+library(Bessel)
+library(RcppArmadillo)
+
+# Source the C++ code
+#Rcpp::sourceCpp("test_bessel_k.cpp")
+
+# Generate a sequence
+x <- seq(1, 10, by = 1)
+
+# Compare results with Bessel package
+tmp <- Bessel::BesselK(x, 2, FALSE, 1, 0)
+all.equal(tmp, as.vector(test_bessel_k(x, 2, FALSE, 0)))
+*/
+```
+
+# Timing Tests
+
+The following code and output provides a quick timing test between the
+`Bessel` and `RcppBessel` packages for the `bessel_k` function.
+
+```{r}
+library(microbenchmark)
+library(Bessel)
+library(RcppBessel)
+z <- seq(-20, 20, by = 0.001)
+b <- microbenchmark(BesselK(z, 2, TRUE), bessel_k(z, 2, TRUE), times = 5L)
+print(b)
+```
+
+
+

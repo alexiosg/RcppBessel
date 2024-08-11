@@ -2,9 +2,12 @@ Package: RcppBessel
 Type: Package
 Title: Bessel Functions Rcpp Interface
 Version: 1.0.0
-Authors@R: c(person(given = "Alexios", family = "Galanos", role = c("aut", "cre"), email = "alexios@4dscape.com"),
-           person(given = "Martin", family = "Maechler", role = c("aut"), comment = "Author of the Bessel R package"), 
-           person(given = "Donald E.", family = "Amos", role = c("aut"), comment = "Original author of the zbsubs Fortran code, Sandia National Laboratories"))
+Authors@R: c(
+    person("Alexios", "Galanos", , "alexios@4dscape.com", role = c("aut", "cre"), comment = c(ORCID = "0009-0000-9308-0457")),
+    person("Martin", "Maechler", role = "aut",
+           comment = "Author of the Bessel R package"),
+    person("Donald E.", "Amos", role = "aut",
+           comment = "Original author of the zbsubs Fortran code, Sandia National Laboratories"))
 Maintainer: Alexios Galanos <alexios@4dscape.com>
 Description: Exports an Rcpp interface for the Bessel functions based on the `Bessel` package which can be called from other packages.
 License: GPL (>= 2)

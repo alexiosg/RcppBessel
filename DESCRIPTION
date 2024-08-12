@@ -5,7 +5,7 @@ Version: 1.0.0
 Authors@R: c(
     person("Alexios", "Galanos", , "alexios@4dscape.com", role = c("aut", "cre"), comment = c(ORCID = "0009-0000-9308-0457")),
     person("Martin", "Maechler", role = "aut",
-           comment = "Author of the Bessel R package"),
+           comment = c("Author of the Bessel R package",ORCID = "0000-0002-8685-9910")),
     person("Donald E.", "Amos", role = "aut",
            comment = "Original author of the zbsubs Fortran code, Sandia National Laboratories"))
 Maintainer: Alexios Galanos <alexios@4dscape.com>

@@ -6,7 +6,7 @@
 \alias{RcppBessel-package}
 \title{RcppBessel: Bessel Functions Rcpp Interface}
 \description{
-Exports an 'Rcpp' interface for the Bessel functions in the 'Bessel' package, which can then be called from the 'C++' code of other packages. The original 'Fortran' code for these function was originally published by Amos (1995) \doi{10.1145/212066.212078}.
+Exports an 'Rcpp' interface for the Bessel functions in the 'Bessel' package, which can then be called from the 'C++' code of other packages. For the original 'Fortran' implementation of these functions see Amos (1995) \doi{10.1145/212066.212078}.
 }
 \seealso{
 Useful links:
